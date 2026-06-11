@@ -32,7 +32,7 @@ preserving the template layout. Seedream 4.0 / Qwen-Image-Edit comparisons
 One command, zero config (needs a [Gemini API key](https://aistudio.google.com/apikey)):
 
 ```sh
-GEMINI_API_KEY=... npx @sprited/xsprite gen char
+GEMINI_API_KEY=... npx sprited gen char
 ```
 
 That invents a character on the spot — and names it too: the model looks at
@@ -40,7 +40,7 @@ what it drew and picks a fitting name (a flower-dress girl came back as
 `daisy.spritesheet.png`). Pass your own name and steer the look:
 
 ```sh
-GEMINI_API_KEY=... npx @sprited/xsprite build fairy -d "A small forest fairy with green wings."
+GEMINI_API_KEY=... npx sprited build fairy -d "A small forest fairy with green wings."
 ```
 
 Have a reference image? Add `-r ./fairy.png` — or omit `-d` entirely and let
@@ -55,7 +55,7 @@ reference: ./fairy.png   # optional — omit to let the model invent the look
 ```
 
 ```sh
-GEMINI_API_KEY=... npx @sprited/xsprite build fairy.xsprite.yaml
+GEMINI_API_KEY=... npx sprited build fairy.xsprite.yaml
 ```
 
 Either way the call composes the bundled 8-direction template, generates via
@@ -79,8 +79,8 @@ options beyond the basics (flag form / config field form):
 Already have a filled sheet, or an animation strip? Extract directly:
 
 ```sh
-npx @sprited/xsprite extract sheet.png --row 1 -o out/my-character
-npx @sprited/xsprite extract-anim walk-sheet.png --frames 8 --fps 8 -o out/walk-S
+npx sprited extract sheet.png --row 1 -o out/my-character
+npx sprited extract-anim walk-sheet.png --frames 8 --fps 8 -o out/walk-S
 ```
 
 ## Working from source

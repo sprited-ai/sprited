@@ -26,11 +26,11 @@ const [cmd, sheetPath, ...rest] = process.argv.slice(2);
 const TURNTABLE_FPS = 2.4;
 
 function usage(): never {
-  console.error('usage: xsprite gen char [name] [-d "description"] [-r reference.png] [--seed N] [-o dir] [--sheet]');
-  console.error('       xsprite build <name> [flags as above]');
-  console.error("       xsprite build <name.xsprite.yaml|json>");
-  console.error("       xsprite extract <sheet.png> [--row N] [--skip-ref N] -o <dir>");
-  console.error("       xsprite extract-anim <sheet.png> --frames N [--row N] [--skip-ref N] [--fps N] [--canvas 256] -o <dir>");
+  console.error('usage: sprited gen char [name] [-d "description"] [-r reference.png] [--seed N] [-o dir] [--sheet]');
+  console.error('       sprited build <name> [flags as above]');
+  console.error("       sprited build <name.xsprite.yaml|json>");
+  console.error("       sprited extract <sheet.png> [--row N] [--skip-ref N] -o <dir>");
+  console.error("       sprited extract-anim <sheet.png> --frames N [--row N] [--skip-ref N] [--fps N] [--canvas 256] -o <dir>");
   process.exit(1);
 }
 
