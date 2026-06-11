@@ -1,5 +1,7 @@
 /** Model providers: composed template in → filled sheet out. */
 import { readFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { join, dirname } from "node:path";
 import sharp from "sharp";
 import type { RawImage } from "../core/image.js";
 
@@ -16,14 +18,18 @@ const DEFAULT_ENV: Record<Provider, string> = {
   "novita-qwen": "NOVITA_API_KEY",
 };
 
+const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+
 function apiKey(envKey: string): string {
   if (process.env[envKey]) return process.env[envKey]!;
-  if (existsSync(".env")) {
-    for (const line of readFileSync(".env", "utf8").split("\n")) {
+  for (const dir of [process.cwd(), PACKAGE_ROOT]) {
+    const file = join(dir, ".env");
+    if (!existsSync(file)) continue;
+    for (const line of readFileSync(file, "utf8").split("\n")) {
       if (line.startsWith(`${envKey}=`)) return line.slice(envKey.length + 1).trim();
     }
   }
-  throw new Error(`no ${envKey} in env or ./.env`);
+  throw new Error(`no ${envKey} in env, ./.env, or xsprite/.env`);
 }
 
 async function toPngBuffer(img: RawImage): Promise<Buffer> {
