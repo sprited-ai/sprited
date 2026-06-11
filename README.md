@@ -29,7 +29,15 @@ preserving the template layout. Seedream 4.0 / Qwen-Image-Edit comparisons
 
 ## Quick start
 
-Describe a character in a tiny YAML file:
+One command (needs a [Gemini API key](https://aistudio.google.com/apikey)):
+
+```sh
+GEMINI_API_KEY=... npx @sprited/xsprite build fairy -d "A small forest fairy with green wings."
+```
+
+Have a reference image? Add `-r ./fairy.png` — or omit `-d` entirely and let
+the reference carry the look. For repeatable builds, put the same fields in a
+config file instead:
 
 ```yaml
 # fairy.xsprite.yaml
@@ -38,29 +46,27 @@ description: "A small forest fairy with green wings."
 reference: ./fairy.png   # optional — omit to let the model invent the look
 ```
 
-Build it (needs a [Gemini API key](https://aistudio.google.com/apikey)):
-
 ```sh
 GEMINI_API_KEY=... npx @sprited/xsprite build fairy.xsprite.yaml
 ```
 
-That one call composes the bundled 8-direction template, generates via Nano
-Banana Pro, extracts and keys the sprites, and writes next to your config:
+Either way the call composes the bundled 8-direction template, generates via
+Nano Banana Pro, extracts and keys the sprites, and writes:
 
 - `fairy.spritesheet.png` — 8 directions, one row
 - `fairy.turntable.webp` — animated turnaround
 - `fairy.entity.json` — sprite metadata (directions, states, seed)
 
 The key can also live in a `.env` file in your working directory. Useful
-config fields beyond the basics:
+options beyond the basics (flag form / config field form):
 
-| field | default | meaning |
-|-------|---------|---------|
-| `seed` | random | a number reproduces a build; the seed used is recorded in `<name>.entity.json` |
-| `output` | config's directory | where outputs land |
-| `outputs.sheet` | off | `true` keeps the raw generated sheet as `<name>.sheet.png` |
-| `template` | `8dir-v1` (bundled) | a builtin template name, or a full `{image, inputSlot, grid}` spec |
-| `model.provider` | `gemini` | also: `novita-seedream`, `novita-qwen` (need `NOVITA_API_KEY`) |
+| flag | config field | default | meaning |
+|------|--------------|---------|---------|
+| `--seed N` | `seed` | random | a number reproduces a build; the seed used is recorded in `<name>.entity.json` |
+| `-o dir` | `output` | cwd / config's directory | where outputs land |
+| `--sheet` | `outputs.sheet` | off | keep the raw generated sheet as `<name>.sheet.png` |
+| `--template` | `template` | `8dir-v1` (bundled) | a builtin template name; config form also takes a full `{image, inputSlot, grid}` spec |
+| `--provider` | `model.provider` | `gemini` | also: `novita-seedream`, `novita-qwen` (need `NOVITA_API_KEY`) |
 
 Already have a filled sheet, or an animation strip? Extract directly:
 

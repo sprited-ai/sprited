@@ -61,21 +61,25 @@ export interface CharacterConfig {
 
 export type ResolvedConfig = CharacterConfig & { template: TemplateSpec; output: string };
 
-export function loadConfig(path: string): ResolvedConfig {
-  const raw = readFileSync(path, "utf8");
-  const cfg = (path.endsWith(".json") ? JSON.parse(raw) : YAML.parse(raw)) as CharacterConfig;
+/** Validate and resolve relative paths against `base` — the config file's
+ * directory, or cwd when the config came from CLI flags. */
+export function resolveConfig(cfg: CharacterConfig, base: string): ResolvedConfig {
   if (!cfg.name) throw new Error("config needs at least: name");
   const templateName = typeof cfg.template === "string" ? cfg.template : undefined;
   if (templateName && !BUILTIN_TEMPLATES[templateName]) {
     throw new Error(`unknown template "${templateName}" — builtins: ${Object.keys(BUILTIN_TEMPLATES).join(", ")}`);
   }
-  // resolve paths relative to the config file (builtin template paths are
-  // already absolute, anchored at the package root)
-  const base = dirname(resolve(path));
+  // builtin template paths are already absolute, anchored at the package root
   const rel = (p: string) => resolve(base, p);
   if (cfg.reference) cfg.reference = rel(cfg.reference);
   const template = typeof cfg.template === "object"
     ? { ...cfg.template, image: rel(cfg.template.image) }
     : { ...BUILTIN_TEMPLATES[templateName ?? DEFAULT_TEMPLATE] };
   return { ...cfg, template, output: rel(cfg.output ?? ".") };
+}
+
+export function loadConfig(path: string): ResolvedConfig {
+  const raw = readFileSync(path, "utf8");
+  const cfg = (path.endsWith(".json") ? JSON.parse(raw) : YAML.parse(raw)) as CharacterConfig;
+  return resolveConfig(cfg, dirname(resolve(path)));
 }

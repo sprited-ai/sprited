@@ -13,7 +13,8 @@ import { makeSpriteSheet } from "./core/sheet.js";
 import { makeEntity } from "./core/entity.js";
 import { writeFileSync } from "node:fs";
 import { readImage, writePng, writeAnimatedWebp } from "./node/io.js";
-import { loadConfig } from "./config.js";
+import { loadConfig, resolveConfig } from "./config.js";
+import type { CharacterConfig, ResolvedConfig } from "./config.js";
 import { startProgress } from "./node/progress.js";
 import { generateSheet, defaultPrompt } from "./node/generate.js";
 import { pasteIntoSlot } from "./core/image.js";
@@ -24,7 +25,8 @@ const [cmd, sheetPath, ...rest] = process.argv.slice(2);
 const TURNTABLE_FPS = 2.4;
 
 function usage(): never {
-  console.error("usage: xsprite build <name.xsprite.yaml|json>");
+  console.error('usage: xsprite build <name> [-d "description"] [-r reference.png] [--seed N] [-o dir] [--sheet]');
+  console.error("       xsprite build <name.xsprite.yaml|json>");
   console.error("       xsprite extract <sheet.png> [--row N] [--skip-ref N] -o <dir>");
   console.error("       xsprite extract-anim <sheet.png> --frames N [--row N] [--skip-ref N] [--fps N] [--canvas 256] -o <dir>");
   process.exit(1);
@@ -32,8 +34,36 @@ function usage(): never {
 
 if (!cmd || !sheetPath) usage();
 
+function configFromFlags(name: string, args: string[]): ResolvedConfig {
+  const { values: b } = parseArgs({
+    args,
+    options: {
+      description: { type: "string", short: "d" },
+      reference: { type: "string", short: "r" },
+      seed: { type: "string" },
+      output: { type: "string", short: "o" },
+      sheet: { type: "boolean" },
+      template: { type: "string" },
+      provider: { type: "string" },
+    },
+  });
+  if (b.seed !== undefined && b.seed !== "random" && !Number.isInteger(Number(b.seed))) {
+    throw new Error(`--seed wants an integer or "random", got "${b.seed}"`);
+  }
+  return resolveConfig({
+    name,
+    description: b.description,
+    reference: b.reference,
+    seed: b.seed === undefined || b.seed === "random" ? undefined : Number(b.seed),
+    output: b.output,
+    template: b.template,
+    model: b.provider ? { provider: b.provider as NonNullable<CharacterConfig["model"]>["provider"] } : undefined,
+    outputs: b.sheet ? { sheet: true } : undefined,
+  }, process.cwd());
+}
+
 if (cmd === "build") {
-  const cfg = loadConfig(sheetPath);
+  const cfg = /\.(ya?ml|json)$/.test(sheetPath) ? loadConfig(sheetPath) : configFromFlags(sheetPath, rest);
   const template = await readImage(cfg.template.image);
   // measure the extraction panel on the CLEAN template (before pasting a
   // reference whose background could fuse with the panel), then scale to
