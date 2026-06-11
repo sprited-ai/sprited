@@ -32,7 +32,8 @@ export const BUILTIN_TEMPLATES: Record<string, TemplateSpec> = {
 export const DEFAULT_TEMPLATE = "8dir-v1";
 
 export interface CharacterConfig {
-  name: string;
+  /** Output/entity name. Omit to auto-name from the seed. */
+  name?: string;
   /** Reference image path. Omit to let the model invent the character. */
   reference?: string;
   /** Extra guidance, e.g. "Character is Lisa and she is a fairy". */
@@ -59,12 +60,27 @@ export interface CharacterConfig {
   };
 }
 
-export type ResolvedConfig = CharacterConfig & { template: TemplateSpec; output: string };
+export type ResolvedConfig = CharacterConfig & {
+  seed: number; template: TemplateSpec; output: string;
+};
 
-/** Validate and resolve relative paths against `base` — the config file's
- * directory, or cwd when the config came from CLI flags. */
+// fallback names when neither the user nor the model supplies one —
+// seed-derived: same seed -> same name, same look
+const ADJ = ["amber", "brisk", "cinder", "dapple", "ember", "fable", "gleam",
+  "hazel", "ivory", "jade", "keen", "lunar", "moss", "nimble", "ochre",
+  "pebble", "quill", "rusty", "sage", "thistle", "umber", "velvet", "wisp"];
+const NOUN = ["badger", "crow", "drake", "fawn", "gnome", "heron", "imp",
+  "knight", "lark", "mole", "newt", "otter", "pixie", "quail", "rogue",
+  "sprite", "toad", "urchin", "vole", "wren"];
+
+export function seedName(seed: number): string {
+  return `${ADJ[seed % ADJ.length]}-${NOUN[(seed >> 8) % NOUN.length]}`;
+}
+
+/** Validate, roll the seed, and resolve relative paths against `base` — the
+ * config file's directory, or cwd when the config came from CLI flags. */
 export function resolveConfig(cfg: CharacterConfig, base: string): ResolvedConfig {
-  if (!cfg.name) throw new Error("config needs at least: name");
+  const seed = typeof cfg.seed === "number" ? cfg.seed : Math.floor(Math.random() * 2 ** 31);
   const templateName = typeof cfg.template === "string" ? cfg.template : undefined;
   if (templateName && !BUILTIN_TEMPLATES[templateName]) {
     throw new Error(`unknown template "${templateName}" — builtins: ${Object.keys(BUILTIN_TEMPLATES).join(", ")}`);
@@ -75,7 +91,7 @@ export function resolveConfig(cfg: CharacterConfig, base: string): ResolvedConfi
   const template = typeof cfg.template === "object"
     ? { ...cfg.template, image: rel(cfg.template.image) }
     : { ...BUILTIN_TEMPLATES[templateName ?? DEFAULT_TEMPLATE] };
-  return { ...cfg, template, output: rel(cfg.output ?? ".") };
+  return { ...cfg, seed, template, output: rel(cfg.output ?? ".") };
 }
 
 export function loadConfig(path: string): ResolvedConfig {

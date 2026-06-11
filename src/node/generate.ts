@@ -57,6 +57,8 @@ export async function generateSheet(template: RawImage, prompt: string, opts: Ge
   const b64 = png.toString("base64");
 
   if (provider === "gemini") {
+    // the model occasionally answers with no image part — one retry covers it
+    for (let attempt = 0; ; attempt++) {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
@@ -67,7 +69,10 @@ export async function generateSheet(template: RawImage, prompt: string, opts: Ge
             { inline_data: { mime_type: "image/png", data: b64 } },
             { text: prompt },
           ] }],
-          generationConfig: { responseModalities: ["IMAGE"], ...(opts.seed !== undefined && { seed: opts.seed }) },
+          generationConfig: {
+            responseModalities: ["IMAGE"],
+            ...(opts.seed !== undefined && { seed: opts.seed }),
+          },
         }),
       });
     if (!res.ok) throw new Error(`gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
@@ -76,7 +81,9 @@ export async function generateSheet(template: RawImage, prompt: string, opts: Ge
       const d = part.inlineData ?? part.inline_data;
       if (d) return fromBytes(Buffer.from(d.data, "base64"));
     }
+    if (attempt < 1) continue;
     throw new Error("gemini returned no image");
+    }
   }
 
   if (provider === "novita-seedream") {
@@ -120,6 +127,31 @@ export async function generateSheet(template: RawImage, prompt: string, opts: Ge
     if (status === "TASK_STATUS_FAILED") throw new Error(`qwen failed: ${JSON.stringify(json).slice(0, 200)}`);
   }
   throw new Error("qwen poll timeout");
+}
+
+/** Ask a cheap text model to name the character from its sprite. Returns the
+ * raw text reply — callers sanitize. NBP itself won't interleave text with
+ * the generated image, so this is a separate ~1s call. */
+export async function nameCharacter(sprite: RawImage): Promise<string | undefined> {
+  const key = apiKey("GEMINI_API_KEY");
+  const b64 = (await toPngBuffer(sprite)).toString("base64");
+  const res = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({
+        contents: [{ parts: [
+          { inline_data: { mime_type: "image/png", data: b64 } },
+          { text: "Give this game character a single short lowercase first name. Reply with just the name." },
+        ] }],
+      }),
+    });
+  if (!res.ok) return undefined;
+  const json = await res.json() as any;
+  const text = (json.candidates?.[0]?.content?.parts ?? [])
+    .map((p: any) => p.text ?? "").join("");
+  return text || undefined;
 }
 
 export function defaultPrompt(hasReference: boolean, description?: string): string {

@@ -13,10 +13,10 @@ import { makeSpriteSheet } from "./core/sheet.js";
 import { makeEntity } from "./core/entity.js";
 import { writeFileSync } from "node:fs";
 import { readImage, writePng, writeAnimatedWebp } from "./node/io.js";
-import { loadConfig, resolveConfig } from "./config.js";
+import { loadConfig, resolveConfig, seedName } from "./config.js";
 import type { CharacterConfig, ResolvedConfig } from "./config.js";
 import { startProgress } from "./node/progress.js";
-import { generateSheet, defaultPrompt } from "./node/generate.js";
+import { generateSheet, defaultPrompt, nameCharacter } from "./node/generate.js";
 import { pasteIntoSlot } from "./core/image.js";
 
 const [cmd, sheetPath, ...rest] = process.argv.slice(2);
@@ -35,7 +35,15 @@ function usage(): never {
 
 if (!cmd || !sheetPath) usage();
 
-function configFromFlags(name: string, args: string[]): ResolvedConfig {
+/** "Her name is Elara." -> "elara". Last plausible word of the model's text
+ * reply, hard-sanitized since it becomes a filename. */
+function nameFromText(text?: string): string | undefined {
+  const words = (text ?? "").toLowerCase().replace(/[^a-z\s-]/g, " ").split(/\s+/)
+    .filter((w) => /^[a-z][a-z-]{2,15}$/.test(w) && !["name", "named", "the", "character", "her", "his", "she", "here"].includes(w));
+  return words.at(-1);
+}
+
+function configFromFlags(name: string | undefined, args: string[]): ResolvedConfig {
   const { values: b } = parseArgs({
     args,
     options: {
@@ -71,7 +79,7 @@ if (cmd === "build" || cmd === "gen" || cmd === "generate") {
     // gen char[acter] [name] — everything defaults, flags optional
     if (!/^char(acter)?$/.test(sheetPath)) usage();
     const named = rest[0] !== undefined && !rest[0].startsWith("-");
-    cfg = configFromFlags(named ? rest[0] : "character", named ? rest.slice(1) : rest);
+    cfg = configFromFlags(named ? rest[0] : undefined, named ? rest.slice(1) : rest);
   }
   const template = await readImage(cfg.template.image);
   // measure the extraction panel on the CLEAN template (before pasting a
@@ -83,16 +91,15 @@ if (cmd === "build" || cmd === "gen" || cmd === "generate") {
     pasteIntoSlot(template, await readImage(cfg.reference), cfg.template.inputSlot);
   }
   const prompt = defaultPrompt(Boolean(cfg.reference), cfg.description);
-  const seed = typeof cfg.seed === "number" ? cfg.seed : Math.floor(Math.random() * 2 ** 31);
+  const { seed } = cfg;
   const provider = cfg.model?.provider ?? "gemini";
-  const progress = startProgress(`${cfg.name} · ${provider} · seed ${seed}`, provider === "gemini" ? 45_000 : 60_000);
+  const progress = startProgress(`${cfg.name ?? "unnamed"} · ${provider} · seed ${seed}`, provider === "gemini" ? 45_000 : 60_000);
   let sheet;
   try {
     sheet = await generateSheet(template, prompt, { ...cfg.model, seed });
   } finally {
-    progress.done(`${cfg.name} · generated`);
+    progress.done(`${cfg.name ?? "unnamed"} · generated`);
   }
-  if (cfg.outputs?.sheet) await writePng(join(cfg.output, cfg.outputs.sheet === true ? `${cfg.name}.sheet.png` : cfg.outputs.sheet), sheet);
   const s = sheet.width / template.width;
   const g = cfg.template.grid;
   const rect = g
@@ -104,11 +111,16 @@ if (cmd === "build" || cmd === "gen" || cmd === "generate") {
   };
   const sprites = extractDirections(sheet, { panel });
   const ordered = SPIN_ORDER.map((d) => sprites[d]);
-  await writePng(join(cfg.output, `${cfg.name}.spritesheet.png`), makeSpriteSheet(ordered));
-  await writeAnimatedWebp(join(cfg.output, `${cfg.name}.turntable.webp`), ordered, TURNTABLE_FPS);
-  const entity = makeEntity(cfg.name, ordered[0].width, ordered[0].height, seed);
-  writeFileSync(join(cfg.output, `${cfg.name}.entity.json`), JSON.stringify(entity, null, 2) + "\n");
-  console.log(`"${cfg.name}" -> ${cfg.output}/${cfg.name}.{spritesheet.png,turntable.webp,entity.json}`);
+  // no name given: show the model its creation, let it pick the name
+  const name = cfg.name
+    ?? nameFromText(await nameCharacter(ordered[0]).catch(() => undefined))
+    ?? seedName(seed);
+  if (cfg.outputs?.sheet) await writePng(join(cfg.output, cfg.outputs.sheet === true ? `${name}.sheet.png` : cfg.outputs.sheet), sheet);
+  await writePng(join(cfg.output, `${name}.spritesheet.png`), makeSpriteSheet(ordered));
+  await writeAnimatedWebp(join(cfg.output, `${name}.turntable.webp`), ordered, TURNTABLE_FPS);
+  const entity = makeEntity(name, ordered[0].width, ordered[0].height, seed);
+  writeFileSync(join(cfg.output, `${name}.entity.json`), JSON.stringify(entity, null, 2) + "\n");
+  console.log(`"${name}" -> ${cfg.output}/${name}.{spritesheet.png,turntable.webp,entity.json}`);
   process.exit(0);
 }
 
