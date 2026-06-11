@@ -21,7 +21,7 @@ import { pasteIntoSlot } from "./core/image.js";
 const [cmd, sheetPath, ...rest] = process.argv.slice(2);
 
 function usage(): never {
-  console.error("usage: xsprite build <character.yaml|json>");
+  console.error("usage: xsprite build <name.xsprite.yaml|json>");
   console.error("       xsprite extract <sheet.png> [--row N] [--skip-ref N] -o <dir>");
   console.error("       xsprite extract-anim <sheet.png> --frames N [--row N] [--skip-ref N] [--fps N] [--canvas 256] -o <dir>");
   process.exit(1);

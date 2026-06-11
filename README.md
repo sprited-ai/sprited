@@ -34,7 +34,7 @@ pnpm install
 cp .env.example .env   # add your GEMINI_API_KEY
 
 # character config → generate (NBP) → extract → key → spritesheet + turntable
-npx tsx src/cli.ts build examples/lisa.yaml
+npx tsx src/cli.ts build examples/lisa.xsprite.yaml
 
 # already have a filled sheet? extract directly
 npx tsx src/cli.ts extract sheet.png --row 1 -o out/my-character
@@ -43,10 +43,10 @@ npx tsx src/cli.ts extract sheet.png --row 1 -o out/my-character
 npx tsx src/cli.ts extract-anim walk-sheet.png --frames 8 --fps 8 -o out/walk-S
 ```
 
-`examples/` is flat: each character is a config (`<name>.yaml`), its
+`examples/` is flat: each character is a config (`<name>.xsprite.yaml`), its
 reference (`<name>.reference.png`), and the outputs it produces
 (`<name>.spritesheet.png`, `<name>.turntable.webp`, `<name>.entity.json`).
-Copy a yaml to start your own character.
+Copy an `.xsprite.yaml` to start your own character.
 
 The pipeline core (`src/core`) is pure TypeScript on `ImageData`-shaped
 buffers — no Node APIs — so the same code runs in the browser; only file IO
