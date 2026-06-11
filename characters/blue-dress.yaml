@@ -1,7 +1,7 @@
-# reference-driven character via NBP
-name: monet
-reference: ../experiments/001-template-8dir/monet-ref.png
-output: ../out/monet
+# photo-reference-driven character via NBP
+name: blue-dress
+reference: ../references/example-reference-photo.png
+output: ../out/blue-dress
 template:
   image: ../templates/spritedx-template-v3.png
   inputSlot: { x: 32, y: 352, width: 160, height: 256 }
