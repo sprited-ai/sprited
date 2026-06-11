@@ -8,7 +8,7 @@ Made by [Sprited](https://spritedx.com) — this is the workflow behind the
 character sheets we've been posting. People kept asking "mind sharing your
 workflow?" — this repo is the answer.
 
-![turnaround](samples/fairy/spin.gif)
+![turnaround](examples/lisa/output/spin.gif)
 
 ## The technique
 
@@ -31,13 +31,20 @@ preserving the template layout. Seedream 4.0 / Qwen-Image-Edit comparisons
 
 ```
 pnpm install
+cp .env.example .env   # add your GEMINI_API_KEY
 
-# filled direction sheet → 8 keyed sprites + spinning turnaround GIF
-npx tsx src/cli.ts extract sheet.png --row 1 --gif spin.gif -o out/my-character
+# character config → generate (NBP) → extract → key → 8 sprites + spin.webp
+npx tsx src/cli.ts build examples/lisa/lisa.yaml
 
-# animation strip → frames + animated WebP (+ GIF preview)
+# already have a filled sheet? extract directly
+npx tsx src/cli.ts extract sheet.png --row 1 -o out/my-character
+
+# animation strip → frames + animated WebP
 npx tsx src/cli.ts extract-anim walk-sheet.png --frames 8 --fps 8 -o out/walk-S
 ```
+
+Each example folder pairs the config with what it produces — copy one to
+start your own character.
 
 The pipeline core (`src/core`) is pure TypeScript on `ImageData`-shaped
 buffers — no Node APIs — so the same code runs in the browser; only file IO
