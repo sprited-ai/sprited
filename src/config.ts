@@ -33,7 +33,9 @@ export interface CharacterConfig {
   };
 
   outputs?: {
-    gif?: string;        // turnaround gif filename
+    /** spin.webp (real alpha) is always written. Set this for an additional
+     * composited GIF preview (GIF alpha is 1-bit, so it gets a solid bg). */
+    gif?: string;
     sheet?: string;      // keep the raw filled sheet
   };
 }
