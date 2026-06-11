@@ -64,7 +64,8 @@ function configFromFlags(name: string | undefined, args: string[]): ResolvedConf
     description: b.description,
     reference: b.reference,
     seed: b.seed === undefined || b.seed === "random" ? undefined : Number(b.seed),
-    output: b.output,
+    // flag builds are throwaway-ish — keep the cwd clean by default
+    output: b.output ?? "./tmp",
     template: b.template,
     model: b.provider ? { provider: b.provider as NonNullable<CharacterConfig["model"]>["provider"] } : undefined,
     outputs: b.sheet ? { sheet: true } : undefined,
