@@ -40,5 +40,8 @@
     "ai",
     "pixel-art",
     "character-generation"
-  ]
+  ],
+  "optionalDependencies": {
+    "onnxruntime-node": "^1.26.0"
+  }
 }

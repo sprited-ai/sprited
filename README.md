@@ -87,11 +87,11 @@ options beyond the basics (flag form / config field form):
 | flag | config field | default | meaning |
 |------|--------------|---------|---------|
 | `--seed N` | `seed` | random | a number reproduces a build; the seed used is recorded in `<name>.entity.json` |
-| `-o dir` | `output` | cwd / config's directory | where outputs land |
+| `-o dir` | `output` | `./outputs` / config's directory | where outputs land |
 | `--sheet` | `outputs.sheet` | off | keep the raw generated sheet as `<name>.sheet.png` |
 | `--template` | `template` | `8dir-v1` (bundled) | a builtin template name; config form also takes a full `{image, inputSlot, grid}` spec |
 | `--provider` | `model.provider` | `gemini` | also: `novita-seedream`, `novita-qwen` (need `NOVITA_API_KEY`) |
-| `--matting` | `matting` | `toonout` | BiRefNet anime matting via Replicate (needs `REPLICATE_API_TOKEN`, falls back to `floodfill` without one); `floodfill` = fast, dependency-free |
+| `--matting` | `matting` | `toonout` | BiRefNet-ToonOut anime matting, run locally via onnxruntime (~440MB model auto-downloaded to `~/.cache/sprited` on first use); falls back to the Replicate endpoint (`REPLICATE_API_TOKEN`), then `floodfill`. `floodfill` = fast, dependency-free |
 | `--no-check` | `check: false` | review on | skip the post-generation review/fix |
 | `--max-fixes N` | `maxFixes` | `1` | review/fix rounds per build; each round feeds the previous round's output back |
 | `--report` | `report: true` | off | stream a build log to `<name>.report.md` with every generated image inlined as a data URI |

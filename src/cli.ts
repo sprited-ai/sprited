@@ -11,6 +11,7 @@ import YAML from "yaml";
 import { extractDirections, extractAnimation, SPIN_ORDER, GENERATED_DIRECTIONS, MIRRORED, type Direction } from "./core/extract.js";
 import { centerOnCanvas, createImage, paste, flipX, scaleNearest, type RawImage } from "./core/image.js";
 import { toonoutMatting, hasReplicateToken } from "./node/matting.js";
+import { localToonoutMatting, hasLocalToonout } from "./node/matting-local.js";
 import { makeSpriteSheet } from "./core/sheet.js";
 import { makeEntity } from "./core/entity.js";
 import { writeFileSync, readdirSync, existsSync } from "node:fs";
@@ -94,7 +95,7 @@ function configFromFlags(name: string | undefined, args: string[]): { cfg: Resol
     description: b.description,
     reference: b.reference,
     seed: b.seed === undefined || b.seed === "random" ? undefined : Number(b.seed),
-    output: b.output ?? ".",
+    output: b.output ?? "./outputs",
     template: b.template,
     model: b.provider ? { provider: b.provider as NonNullable<CharacterConfig["model"]>["provider"] } : undefined,
     outputs: b.sheet ? { sheet: true } : undefined,
@@ -158,13 +159,16 @@ if (cmd === "build" || cmd === "gen" || cmd === "generate") {
   const prompt = defaultPrompt(Boolean(cfg.reference), cfg.description);
   const name = cfg.name ?? nextCharName(cfg.output);
   const provider = cfg.model?.provider ?? "gemini";
-  // toonout by default — best edges; floodfill is the explicit opt-out
-  let useToonout = cfg.matting !== "floodfill";
-  if (useToonout && !hasReplicateToken()) {
-    if (cfg.matting === "toonout") {
-      console.error("warning: matting: toonout requested but no REPLICATE_API_TOKEN found — falling back to the built-in color keyer (lower edge quality on hair/translucency)");
+  // toonout by default — best edges; floodfill is the explicit opt-out.
+  // Local ONNX first (no network, no credits), the Replicate endpoint when
+  // onnxruntime-node isn't installed, floodfill as the last resort.
+  let matting: "local" | "replicate" | "floodfill" = "floodfill";
+  if (cfg.matting !== "floodfill") {
+    if (await hasLocalToonout()) matting = "local";
+    else if (hasReplicateToken()) matting = "replicate";
+    else if (cfg.matting === "toonout") {
+      console.error("warning: matting: toonout requested but neither onnxruntime-node nor REPLICATE_API_TOKEN is available — falling back to the built-in color keyer");
     }
-    useToonout = false;
   }
 
   /** One generation pass: model call + extraction into SPIN_ORDER cells. */
@@ -186,12 +190,14 @@ if (cmd === "build" || cmd === "gen" || cmd === "generate") {
       width: Math.round(rect.width * s), height: Math.round(rect.height * s),
     };
     let sprites: Record<Direction, RawImage>;
-    if (useToonout) {
+    if (matting !== "floodfill") {
       const inset = 4;
       const rawCells = extractDirections(sheet, { panel, raw: true, inset });
       const rawList = GENERATED_DIRECTIONS.map((d) => rawCells[d]);
-      console.error("matting via sprited/birefnet-toonout (cold boot can take ~2min)...");
-      const matted = await toonoutMatting(rawList);
+      console.error(matting === "local"
+        ? "matting via local birefnet-toonout (onnxruntime)..."
+        : "matting via sprited/birefnet-toonout on Replicate (cold boot can take ~2min)...");
+      const matted = matting === "local" ? await localToonoutMatting(rawList) : await toonoutMatting(rawList);
       const pad = (img: RawImage): RawImage => {
         const padded = createImage(img.width + 2 * inset, img.height + 2 * inset, [0, 0, 0, 0]);
         paste(padded, img, inset, inset);
@@ -229,7 +235,7 @@ if (cmd === "build" || cmd === "gen" || cmd === "generate") {
     `- seed: \`${seed}\` (${cfg.seedRolled ? "rolled" : "pinned"})`,
     ...(cfg.description ? [`- description: ${cfg.description}`] : []),
     ...(cfg.reference ? [`- reference: \`${cfg.reference}\``] : []),
-    `- matting: \`${useToonout ? "toonout" : "floodfill"}\``,
+    `- matting: \`${matting === "floodfill" ? "floodfill" : `toonout (${matting})`}\``,
     `- review/fix rounds: ${maxFixes}`,
   ].join("\n"));
   report?.log("generation prompt:\n\n```\n" + prompt + "\n```");
