@@ -23,7 +23,7 @@
     "templates"
   ],
   "scripts": {
-    "build": "tsup src/cli.ts src/core/index.ts src/node/build.ts src/node/toonout.ts src/web/toonout.ts --format esm --dts --clean",
+    "build": "tsup",
     "dev": "tsx src/cli.ts",
     "test": "vitest run"
   },
