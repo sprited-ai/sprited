@@ -18,6 +18,7 @@ import { readImage, writePng, writeAnimatedWebp } from "./node/io.js";
 import { loadConfig, resolveConfig } from "./config.js";
 import type { CharacterConfig, ResolvedConfig } from "./config.js";
 import { startProgress } from "./node/progress.js";
+import { ZSH, BASH } from "./node/completions.js";
 import { generateSheet, defaultPrompt } from "./node/generate.js";
 import { pasteIntoSlot } from "./core/image.js";
 
@@ -32,7 +33,16 @@ function usage(): never {
   console.error("       sprited build <name.sprited.yaml|json>");
   console.error("       sprited extract <sheet.png> [--row N] [--skip-ref N] -o <dir>");
   console.error("       sprited extract-anim <sheet.png> --frames N [--row N] [--skip-ref N] [--fps N] [--canvas 256] -o <dir>");
+  console.error("       sprited completion [zsh|bash]");
   process.exit(1);
+}
+
+if (cmd === "completion") {
+  // shell omitted: whatever the user is typing in right now
+  const shell = sheetPath ?? (process.env.SHELL?.endsWith("bash") ? "bash" : "zsh");
+  if (shell !== "zsh" && shell !== "bash") usage();
+  process.stdout.write(shell === "zsh" ? ZSH : BASH);
+  process.exit(0);
 }
 
 if (!cmd || !sheetPath) usage();

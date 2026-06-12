@@ -86,6 +86,14 @@ npx sprited extract sheet.png --row 1 -o out/my-character
 npx sprited extract-anim walk-sheet.png --frames 8 --fps 8 -o out/walk-S
 ```
 
+Tab completion for commands, flags, and flag values (needs `sprited` on your
+PATH, e.g. `npm i -g sprited` — the shell can't complete one-off `npx` runs):
+
+```sh
+eval "$(sprited completion zsh)"    # ~/.zshrc
+eval "$(sprited completion bash)"   # ~/.bashrc
+```
+
 ## Working from source
 
 ```sh
