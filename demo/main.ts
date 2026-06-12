@@ -62,7 +62,7 @@ goBtn.addEventListener("click", async () => {
   try {
     const template = await decodeBlob(await (await fetch(templateUrl)).blob());
     const reference = refInput.files?.[0] ? await decodeBlob(refInput.files[0]) : undefined;
-    const { name, seed, cells, spritesheet, entity } = await buildCharacter({
+    const { name, seed, concept, cells, spritesheet, entity } = await buildCharacter({
       apiKey,
       template,
       name: nameInput.value.trim() || undefined,
@@ -74,6 +74,9 @@ goBtn.addEventListener("click", async () => {
     log(`done — seed ${seed}`);
 
     resultEl.hidden = false;
+    const conceptCanvas = $<HTMLCanvasElement>("concept");
+    conceptCanvas.hidden = !concept;
+    if (concept) drawTo(conceptCanvas, concept, 160);
     const turnCanvas = $<HTMLCanvasElement>("turn");
     drawTo($<HTMLCanvasElement>("sheet"), spritesheet, 640);
     let frame = 0;
