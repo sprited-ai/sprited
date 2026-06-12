@@ -71,7 +71,7 @@ options beyond the basics (flag form / config field form):
 | flag | config field | default | meaning |
 |------|--------------|---------|---------|
 | `--seed N` | `seed` | random | a number reproduces a build; the seed used is recorded in `<name>.entity.json` |
-| `-o dir` | `output` | `./tmp` / config's directory | where outputs land |
+| `-o dir` | `output` | cwd / config's directory | where outputs land |
 | `--sheet` | `outputs.sheet` | off | keep the raw generated sheet as `<name>.sheet.png` |
 | `--template` | `template` | `8dir-v1` (bundled) | a builtin template name; config form also takes a full `{image, inputSlot, grid}` spec |
 | `--provider` | `model.provider` | `gemini` | also: `novita-seedream`, `novita-qwen` (need `NOVITA_API_KEY`) |
