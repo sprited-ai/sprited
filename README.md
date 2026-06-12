@@ -8,7 +8,7 @@ Made by [Sprited](https://spritedx.com) — this is the workflow behind the
 character sheets we've been posting. People kept asking "mind sharing your
 workflow?" — this repo is the answer.
 
-![turnaround](https://raw.githubusercontent.com/sprited-ai/xsprite/main/examples/monet.turntable.webp)
+![turnaround](https://raw.githubusercontent.com/sprited-ai/sprited/main/examples/monet.turntable.webp)
 
 ## The technique
 
