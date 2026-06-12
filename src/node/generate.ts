@@ -288,7 +288,8 @@ const FIX_GRID: (number | null)[][] = (() => {
   ];
 })();
 
-async function buildFixGrid(cells: RawImage[], barH: number): Promise<Buffer> {
+/** Exported for inspection/tests — `fixSpritesheet` is the real consumer. */
+export async function buildFixGrid(cells: RawImage[], barH: number): Promise<Buffer> {
   const { width: cw, height: ch } = cells[0];
   const slotH = ch + barH;
   const overlays: sharp.OverlayOptions[] = [];
