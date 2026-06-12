@@ -91,7 +91,7 @@ options beyond the basics (flag form / config field form):
 | `--sheet` | `outputs.sheet` | off | keep the raw generated sheet as `<name>.sheet.png` |
 | `--template` | `template` | `8dir-v1` (bundled) | a builtin template name; config form also takes a full `{image, inputSlot, grid}` spec |
 | `--provider` | `model.provider` | `gemini` | also: `novita-seedream`, `novita-qwen` (need `NOVITA_API_KEY`) |
-| `--matting` | `matting` | `floodfill` | `toonout` = BiRefNet anime matting via Replicate (needs `REPLICATE_API_TOKEN`; best edges on hair/translucency) |
+| `--matting` | `matting` | `toonout` | BiRefNet anime matting via Replicate (needs `REPLICATE_API_TOKEN`, falls back to `floodfill` without one); `floodfill` = fast, dependency-free |
 | `--no-check` | `check: false` | review on | skip the post-generation review/fix |
 | `--max-fixes N` | `maxFixes` | `1` | review/fix rounds per build; each round feeds the previous round's output back |
 | `--report` | `report: true` | off | stream a build log to `<name>.report.md` with every generated image inlined as a data URI |

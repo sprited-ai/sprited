@@ -54,9 +54,10 @@ export interface CharacterConfig {
     envKey?: string;
   };
 
-  /** Background removal: "floodfill" (default — fast, dependency-free,
-   * browser-parity) or "toonout" (BiRefNet anime matting via the Replicate
-   * endpoint; needs REPLICATE_API_TOKEN; best edge quality). */
+  /** Background removal: "toonout" (default — BiRefNet anime matting via the
+   * Replicate endpoint, needs REPLICATE_API_TOKEN, best edge quality; builds
+   * without a token quietly fall back to floodfill) or "floodfill" (fast,
+   * dependency-free, browser-parity). */
   matting?: "floodfill" | "toonout";
 
   /** Post-generation QC (default true): a VLM reviews the assembled

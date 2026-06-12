@@ -158,9 +158,12 @@ if (cmd === "build" || cmd === "gen" || cmd === "generate") {
   const prompt = defaultPrompt(Boolean(cfg.reference), cfg.description);
   const name = cfg.name ?? nextCharName(cfg.output);
   const provider = cfg.model?.provider ?? "gemini";
-  let useToonout = cfg.matting === "toonout";
+  // toonout by default — best edges; floodfill is the explicit opt-out
+  let useToonout = cfg.matting !== "floodfill";
   if (useToonout && !hasReplicateToken()) {
-    console.error("warning: matting: toonout requested but no REPLICATE_API_TOKEN found — falling back to the built-in color keyer (lower edge quality on hair/translucency)");
+    if (cfg.matting === "toonout") {
+      console.error("warning: matting: toonout requested but no REPLICATE_API_TOKEN found — falling back to the built-in color keyer (lower edge quality on hair/translucency)");
+    }
     useToonout = false;
   }
 
