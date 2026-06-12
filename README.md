@@ -118,6 +118,19 @@ In the browser, install `onnxruntime-web` alongside; the model (~470MB,
 [sprited/birefnet-toonout-onnx](https://huggingface.co/sprited/birefnet-toonout-onnx))
 is fetched once and kept in the Cache API.
 
+The whole build pipeline also runs in the browser — `sprited/web` is the
+same generate → extract → self-review loop on Canvas instead of sharp
+(matting is the floodfill keyer there for now). The
+[demo page](https://sprited-ai.github.io/sprited/) is exactly this:
+
+```ts
+import { buildCharacter, canvasCodec } from "sprited/web";
+const template = await canvasCodec.decodeImage(new Uint8Array(await (await fetch(templateUrl)).arrayBuffer()));
+const { cells, spritesheet, entity } = await buildCharacter({
+  apiKey, template, description: "a tiny robot with a single glowing eye",
+});
+```
+
 Tab completion for commands, flags, and flag values (needs `sprited` on your
 PATH, e.g. `npm i -g sprited` — the shell can't complete one-off `npx` runs):
 

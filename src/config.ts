@@ -5,29 +5,24 @@ import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import YAML from "yaml";
 import { PACKAGE_ROOT } from "./node/pkg.js";
+import { TEMPLATE_GEOMETRY, type TemplateGeometry, type Slot } from "./core/templates.js";
 
-export interface Slot { x: number; y: number; width: number; height: number }
+export type { Slot };
 
-export interface TemplateSpec {
+/** Geometry (src/core/templates.ts — platform-neutral) plus the image path,
+ * which is a Node concern: builtins anchor at the package root, a browser
+ * app fetches the PNG as an asset instead. */
+export interface TemplateSpec extends TemplateGeometry {
   image: string;
-  /** Where the reference gets pasted (the blank cell of the inference row). */
-  inputSlot?: Slot;
-  /** Exact cell grid of the inference row, in template coordinates.
-   * Preferred over panel auto-detection — no detection fuzz. */
-  grid?: { x: number; y: number; cellWidth: number; cellHeight: number; columns: number };
-  /** Panel to extract after generation (fallback when no grid). */
-  row?: number;
 }
 
 /** Templates shipped with the package — name them instead of spelling out
  * image paths and slot coordinates. */
-export const BUILTIN_TEMPLATES: Record<string, TemplateSpec> = {
-  "8dir-v1": {
-    image: join(PACKAGE_ROOT, "templates", "sprited-8dir-v1.png"),
-    inputSlot: { x: 32, y: 352, width: 160, height: 256 },
-    grid: { x: 192, y: 352, cellWidth: 160, cellHeight: 256, columns: 5 },
-  },
-};
+export const BUILTIN_TEMPLATES: Record<string, TemplateSpec> = Object.fromEntries(
+  Object.entries(TEMPLATE_GEOMETRY).map(([name, geometry]) => [
+    name, { image: join(PACKAGE_ROOT, "templates", `sprited-${name}.png`), ...geometry },
+  ]),
+);
 
 export const DEFAULT_TEMPLATE = "8dir-v1";
 

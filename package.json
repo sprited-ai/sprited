@@ -16,7 +16,8 @@
       "browser": "./dist/web/toonout.js",
       "default": "./dist/node/toonout.js"
     },
-    "./build": "./dist/node/build.js"
+    "./build": "./dist/node/build.js",
+    "./web": "./dist/web/build.js"
   },
   "files": [
     "dist",

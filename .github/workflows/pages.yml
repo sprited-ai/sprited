@@ -4,7 +4,7 @@ name: pages
 on:
   push:
     branches: [main]
-    paths: ["demo/**", "examples/**", ".github/workflows/pages.yml"]
+    paths: ["demo/**", "examples/**", "src/**", "templates/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -24,13 +24,21 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Stage site
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Build site
         run: |
-          mkdir -p _site/assets
-          cp demo/index.html _site/
-          cp examples/*.spritesheet.png examples/*.turntable.webp _site/assets/
+          pnpm install --frozen-lockfile
+          pnpm exec vite build demo
+          mkdir -p demo/dist/assets
+          cp examples/*.spritesheet.png examples/*.turntable.webp demo/dist/assets/
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: _site
+          path: demo/dist
       - id: deployment
         uses: actions/deploy-pages@v4

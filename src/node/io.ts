@@ -12,8 +12,8 @@ export async function readImage(path: string): Promise<RawImage> {
   return { width: info.width, height: info.height, data: new Uint8ClampedArray(data) };
 }
 
-export async function decodeImage(bytes: ArrayBuffer | Buffer): Promise<RawImage> {
-  const { data, info } = await sharp(Buffer.from(bytes as ArrayBuffer)).ensureAlpha().raw()
+export async function decodeImage(bytes: ArrayBuffer | Uint8Array): Promise<RawImage> {
+  const { data, info } = await sharp(Buffer.from(bytes as Uint8Array)).ensureAlpha().raw()
     .toBuffer({ resolveWithObject: true });
   return { width: info.width, height: info.height, data: new Uint8ClampedArray(data) };
 }
