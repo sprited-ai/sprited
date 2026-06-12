@@ -145,8 +145,14 @@ eval "$(sprited completion bash)"   # ~/.bashrc
 
 ```sh
 pnpm install
+pnpm dev               # the web UI (the demo page) on a local vite server
+```
+
+For the CLI against the source tree:
+
+```sh
 cp .env.example .env   # add your GEMINI_API_KEY
-npx tsx src/cli.ts build examples/lisa.sprited.yaml
+pnpm cli build examples/lisa.sprited.yaml
 ```
 
 `examples/` is flat: each character is a config (`<name>.sprited.yaml`), its

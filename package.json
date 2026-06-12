@@ -25,7 +25,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsx src/cli.ts",
+    "dev": "vite demo --open",
+    "cli": "tsx src/cli.ts",
     "test": "vitest run"
   },
   "dependencies": {
