@@ -11,14 +11,18 @@
     "sprited": "./dist/cli.js"
   },
   "exports": {
-    ".": "./dist/core/index.js"
+    ".": "./dist/core/index.js",
+    "./toonout": {
+      "browser": "./dist/web/toonout.js",
+      "default": "./dist/node/toonout.js"
+    }
   },
   "files": [
     "dist",
     "templates"
   ],
   "scripts": {
-    "build": "tsup src/cli.ts src/core/index.ts --format esm --dts --clean",
+    "build": "tsup src/cli.ts src/core/index.ts src/node/toonout.ts src/web/toonout.ts --format esm --dts --clean",
     "dev": "tsx src/cli.ts",
     "test": "vitest run"
   },
@@ -43,5 +47,13 @@
   ],
   "optionalDependencies": {
     "onnxruntime-node": "^1.26.0"
+  },
+  "peerDependencies": {
+    "onnxruntime-web": ">=1.26.0"
+  },
+  "peerDependenciesMeta": {
+    "onnxruntime-web": {
+      "optional": true
+    }
   }
 }
