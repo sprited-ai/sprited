@@ -139,7 +139,7 @@ if (cmd === "build" || cmd === "gen" || cmd === "generate") {
     ? startReport(join(cfg.output, `${name}.report.md`), `${name} — build report`)
     : undefined;
   let stepN = 0;
-  const { seed, sheet, cells, spritesheet, entity } = await buildCharacter(cfg, {
+  const { seed, sheet, concept, cells, spritesheet, entity } = await buildCharacter(cfg, {
     log: (line) => console.error(line),
     progress: (label, expectedMs) => {
       const p = startProgress(label, expectedMs);
@@ -156,12 +156,13 @@ if (cmd === "build" || cmd === "gen" || cmd === "generate") {
       : undefined,
   });
   if (cfg.outputs?.sheet) await writePng(join(cfg.output, cfg.outputs.sheet === true ? `${name}.sheet.png` : cfg.outputs.sheet), sheet);
+  if (concept) await writePng(join(cfg.output, `${name}.concept.png`), concept);
   await writePng(join(cfg.output, `${name}.spritesheet.png`), spritesheet);
   await writeAnimatedWebp(join(cfg.output, `${name}.turntable.webp`), cells, TURNTABLE_FPS);
   writeFileSync(join(cfg.output, `${name}.entity.json`), JSON.stringify(entity, null, 2) + "\n");
   // the seed that actually produced the kept sheet, not the one we started with
   if (flags) writeFileSync(join(cfg.output, `${name}.sprited.yaml`), buildYaml({ ...cfg, seed }, flags.template, name));
-  const exts = ["spritesheet.png", "turntable.webp", "entity.json",
+  const exts = [...(concept ? ["concept.png"] : []), "spritesheet.png", "turntable.webp", "entity.json",
     ...(flags ? ["sprited.yaml"] : []), ...(cfg.report ? ["report.md"] : [])];
   console.log(`"${name}" -> ${cfg.output}/${name}.{${exts.join(",")}}`);
   process.exit(0);

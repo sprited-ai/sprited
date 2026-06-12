@@ -4,7 +4,7 @@
  * server, an editor). Diagnostics flow through hooks. */
 import { existsSync, readdirSync } from "node:fs";
 import { findPanels, extractDirections, SPIN_ORDER, GENERATED_DIRECTIONS, MIRRORED, type Direction } from "../core/extract.js";
-import { createImage, paste, flipX, pasteIntoSlot, type RawImage } from "../core/image.js";
+import { createImage, crop, paste, flipX, pasteIntoSlot, type RawImage } from "../core/image.js";
 import { makeSpriteSheet } from "../core/sheet.js";
 import { makeEntity, type EntityDescriptor } from "../core/entity.js";
 import { readImage } from "./io.js";
@@ -30,6 +30,10 @@ export interface BuildResult {
   seed: number;
   /** Raw generated sheet (template filled by the model). */
   sheet: RawImage;
+  /** The inference row's reference cell: the model's full concept render for
+   * invented characters (the prompt asks for one), the pasted reference
+   * otherwise. Absent when the template has no inputSlot. */
+  concept?: RawImage;
   /** SPIN_ORDER cells after matting and review/fix. */
   cells: RawImage[];
   spritesheet: RawImage;
@@ -103,6 +107,11 @@ export async function buildCharacter(cfg: ResolvedConfig, hooks: BuildHooks = {}
     done(`${name} · generated`);
   }
   const s = sheet.width / template.width;
+  const slot = cfg.template!.inputSlot;
+  const concept = slot
+    ? crop(sheet, Math.round(slot.x * s), Math.round(slot.y * s),
+        Math.round(slot.width * s), Math.round(slot.height * s))
+    : undefined;
   const g = cfg.template!.grid;
   const rect = g
     ? { x: g.x, y: g.y, width: g.cellWidth * g.columns, height: g.cellHeight }
@@ -136,6 +145,10 @@ export async function buildCharacter(cfg: ResolvedConfig, hooks: BuildHooks = {}
   report?.log(`## generation — seed \`${seed}\``);
   await report?.image("generated sheet", sheet);
   await stage("generated-sheet", sheet);
+  if (concept) {
+    await report?.image("concept (reference cell)", concept);
+    await stage("concept", concept);
+  }
   await report?.image("extracted spritesheet", makeSpriteSheet(cells));
   await stage("spritesheet", makeSpriteSheet(cells));
 
@@ -177,5 +190,5 @@ export async function buildCharacter(cfg: ResolvedConfig, hooks: BuildHooks = {}
   report?.log(`## result — seed \`${seed}\``);
   await report?.image("final spritesheet", spritesheet);
   const entity = makeEntity(name, cells[0].width, cells[0].height, seed);
-  return { name, seed, sheet, cells, spritesheet, entity };
+  return { name, seed, sheet, concept, cells, spritesheet, entity };
 }

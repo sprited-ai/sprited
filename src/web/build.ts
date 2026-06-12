@@ -4,7 +4,7 @@
  * ./toonout.ts), and results come back as RawImages for the app to render
  * or download. */
 import { findPanels, extractDirections, SPIN_ORDER } from "../core/extract.js";
-import { pasteIntoSlot, type RawImage } from "../core/image.js";
+import { crop, pasteIntoSlot, type RawImage } from "../core/image.js";
 import { makeSpriteSheet } from "../core/sheet.js";
 import { makeEntity, type EntityDescriptor } from "../core/entity.js";
 import { generateSheet, fixSpritesheet, defaultPrompt, type GenContext, type GenerateOptions } from "../core/gen.js";
@@ -40,6 +40,9 @@ export interface WebBuildResult {
   seed: number;
   /** Raw generated sheet (template filled by the model). */
   sheet: RawImage;
+  /** The inference row's reference cell: the model's full concept render for
+   * invented characters, the pasted reference otherwise. */
+  concept?: RawImage;
   /** SPIN_ORDER cells after keying and review/fix. */
   cells: RawImage[];
   spritesheet: RawImage;
@@ -73,6 +76,12 @@ export async function buildCharacter(opts: WebBuildOptions): Promise<WebBuildRes
   stage("generated-sheet", sheet);
 
   const s = sheet.width / template.width;
+  const slot = geometry.inputSlot;
+  const concept = slot
+    ? crop(sheet, Math.round(slot.x * s), Math.round(slot.y * s),
+        Math.round(slot.width * s), Math.round(slot.height * s))
+    : undefined;
+  if (concept) stage("concept", concept);
   const g = geometry.grid;
   const rect = g
     ? { x: g.x, y: g.y, width: g.cellWidth * g.columns, height: g.cellHeight }
@@ -104,5 +113,5 @@ export async function buildCharacter(opts: WebBuildOptions): Promise<WebBuildRes
 
   const spritesheet = makeSpriteSheet(cells);
   const entity = makeEntity(name, cells[0].width, cells[0].height, seed);
-  return { name, seed, sheet, cells, spritesheet, entity };
+  return { name, seed, sheet, concept, cells, spritesheet, entity };
 }

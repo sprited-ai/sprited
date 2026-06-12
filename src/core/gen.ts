@@ -378,6 +378,8 @@ export function defaultPrompt(hasReference: boolean, description?: string): stri
   const base = hasReference
     ? "fill in bottom characters. don't touch the top half."
     : "on the bottom create a new character while keeping top half the same. " +
-      "The bottom character should be similar in style with top character's vibe.";
+      "The bottom character should be similar in style with top character's vibe. " +
+      "In the bottom Reference cell draw a full rendered concept of the new character, " +
+      "like the reference photo above it.";
   return description ? `${base}\n\n${description}` : base;
 }

@@ -65,6 +65,8 @@ Nano Banana Pro, extracts and keys the sprites, and writes:
 
 - `fairy.spritesheet.png` — 8 directions, one row
 - `fairy.turntable.webp` — animated turnaround
+- `fairy.concept.png` — the reference cell: for invented characters the model
+  draws a full concept render there; for reference builds it's your reference
 - `fairy.entity.json` — sprite metadata (directions, states, seed)
 - `fairy.sprited.yaml` — flag builds only: the config that reproduces this build
 
